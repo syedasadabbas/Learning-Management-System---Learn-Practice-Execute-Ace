@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "//exclude": "services/** is EXCLUDED because services/realtime is a separate npm package with its own package.json, node_modules, tsconfig and deploy target (see DEPLOYMENT_LIVE_CLASSES.md). The include glob above is `**/*.ts`, so without this line the root `tsc --noEmit` would compile that package's sources under the Next app's options — moduleResolution `bundler` against dependencies installed in a NESTED node_modules the root exclude does not cover — and fail on imports that resolve perfectly well where they actually run.",
+  "exclude": ["node_modules", "services"]
+}

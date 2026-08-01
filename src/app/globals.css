@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+ * DESIGN TOKENS — Tailwind v4 (there is no tailwind.config.js; @theme is it).
+ * ---------------------------------------------------------------------------
+ * SOURCE OF TRUTH: src/lib/config/app.config.ts -> branding.colors
+ *
+ * CSS cannot import from TypeScript, so the three brand values below are a
+ * deliberate mirror of app.config. app.config REMAINS the source of truth:
+ * if a value changes there it MUST be changed here in the same commit, and
+ * vice versa is not allowed (never edit here alone). Nothing else in the app
+ * may hardcode a brand colour — components reference these tokens only, via
+ * Tailwind utilities (bg-brand, text-accent, ...) or var(--color-*).
+ *
+ * Owner: ui-shell stream. app.config.ts is FROZEN (shared-contracts).
+ * ========================================================================= */
+@theme {
+  /* --- mirrored from app.config branding.colors (keep in sync) ----------- */
+  --color-brand: #4f5bd5; /* app.config branding.colors.primary */
+  --color-accent: #f4b942; /* app.config branding.colors.accent */
+  --color-surface: #f4f4f6; /* app.config branding.colors.surface */
+
+  /* --- neutral UI scale (not brand; safe to tune without touching config) -
+   * Contrast, measured against the tokens above (WCAG 2.1, light theme):
+   *   ink       on surface  -> 15.0:1  (AAA body text)
+   *   ink-muted on surface  ->  5.1:1  (AA body text)
+   *   white     on brand    ->  5.5:1  (AA body text, AAA large)
+   *   ink       on accent   -> 11.8:1  (AAA) -> accent NEVER pairs with white
+   */
+  --color-ink: #1a1a1f;
+  --color-ink-muted: #55555f;
+  --color-line: #d8d8e0;
+  --color-panel: #ffffff;
+}
+
+:root {
+  /* Light theme only for the MVP. A dark theme would mean a second mirrored
+   * token block; deferred rather than half-done. */
+  color-scheme: light;
+
+  /* --- motion scale, mirrored from src/lib/motion/tokens.ts MOTION_MS -------
+   * SOURCE OF TRUTH: src/lib/motion/tokens.ts. CSS cannot import TypeScript, so
+   * these are a hand mirror in exactly the way the brand colours above mirror
+   * app.config.ts. src/lib/motion/tokens.test.ts reads THIS FILE off disk and
+   * fails if a value here disagrees with MOTION_MS, so the mirror cannot rot.
+   *
+   * Metric units: milliseconds, matching STEP_TRANSITION_MS in
+   * src/lib/exercises/reduced-motion.ts. Declared in :root rather than @theme
+   * because these are consumed as var() by the hand-written rules below, not as
+   * generated Tailwind utilities — @theme is for the latter. */
+  --motion-fast: 150ms;
+  --motion-base: 250ms;
+  --motion-slow: 400ms;
+  --motion-ambient: 1200ms;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+/* Keyboard focus must always be visible. Individual components add their own
+ * focus-visible ring; this is the floor so a missed component is still usable. */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* ===========================================================================
+ * SHARED-PRIMITIVE ANIMATION
+ * ---------------------------------------------------------------------------
+ * Owner: ui-shell stream. Class names are declared in src/lib/motion/tokens.ts
+ * (MOTION_CLASS) and referenced from the primitives by constant, so a rename
+ * here breaks the build instead of quietly deleting an animation.
+ *
+ * WHY THESE ARE HAND-WRITTEN CSS RULES AND NOT TAILWIND UTILITIES ON THE JSX:
+ *
+ *  1. Reduced motion has to switch off the TRANSFORM, not just its duration.
+ *     The blanket rule further down clamps every duration to 1 ms, which is the
+ *     right floor for a colour fade but is NOT sufficient for a hover lift: a
+ *     `hover:-translate-y-0.5` utility still MOVES the card, it just moves it
+ *     in 1 ms instead of 150 ms. A user who asked for reduced motion asked for
+ *     the element not to jump around under their pointer. Only a rule that can
+ *     say `transform: none` in the reduce branch can deliver that, and a rule
+ *     needs a class.
+ *  2. Zero JavaScript. See the bundle note in src/lib/motion/tokens.ts —
+ *     framer-motion is already a dependency but is deliberately confined behind
+ *     the dynamic import in LazyExerciseList.tsx, and the ui primitives are
+ *     imported by every route in the app.
+ *
+ * INVARIANT EVERY RULE BELOW HOLDS: the static, un-animated style is already
+ * the correct final style, and the keyframes only describe how the element
+ * ENTERS it (`from` only, no fill-mode). Consequences: content is never waiting
+ * on a keyframe to become readable, an interrupted or unsupported animation
+ * leaves nothing half-drawn, and `animation: none` is therefore a complete and
+ * safe reduced-motion override rather than a way to break the layout.
+ * ========================================================================= */
+
+/* Progress fill: grows from zero to its data-driven width once, on mount.
+ * WHY: every progress bar in the app is server-rendered at its final width
+ * (src/components/ui/ProgressBar.tsx sets an inline width), so before this the
+ * `transition-[width]` on the fill never fired on a page load — it could only
+ * animate a client-side value change, which the dashboard and week pages never
+ * do. The bar was simply *painted* at 62%. Growing it makes the number read as
+ * progress the student earned rather than a static graphic. */
+@keyframes ui-progress-fill {
+  from {
+    width: 0;
+  }
+}
+.ui-anim-progress-fill {
+  animation: ui-progress-fill var(--motion-slow) ease-out;
+}
+
+/* Toast entrance: 250 ms fade + 8 px rise.
+ * WHY: toasts are inserted into a fixed viewport with no transition at all, so
+ * a status message currently teleports into the corner of the screen. A short
+ * rise is the difference between "something appeared" and "something arrived
+ * from the action I just took". Kept at `base`, and it does not gate the live
+ * region: role=status/alert is announced from the DOM insertion, not the
+ * keyframe, so a screen-reader user hears it immediately either way. */
+@keyframes ui-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+.ui-anim-toast-in {
+  animation: ui-toast-in var(--motion-base) ease-out;
+}
+
+/* Hover lift for interactive cards. Card.tsx already changed shadow on hover,
+ * which on a light-on-light panel is nearly invisible; 2 px of travel is what
+ * actually communicates "this whole card is a target". Pressing returns it to
+ * rest so the card reads as being pushed down. */
+.ui-lift {
+  transition:
+    box-shadow var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
+}
+.ui-lift:hover {
+  transform: translateY(-2px);
+}
+.ui-lift:active {
+  transform: translateY(0);
+}
+
+/* Press feedback for buttons and star targets. 98% is deliberately small: it
+ * must be felt rather than seen, and it must not shift neighbouring layout —
+ * transform does not reflow. Excluded on :disabled, where a press response
+ * would contradict the control refusing the click (Button.tsx blocks clicks
+ * while `loading` by setting the disabled attribute). */
+.ui-press {
+  /* The colour properties are listed HERE, and Button.tsx no longer carries
+   * Tailwind's `transition-colors`, because `transition` is a single
+   * winner-takes-all declaration: two rules cannot each contribute one property
+   * to it. This file is unlayered CSS and Tailwind utilities live in
+   * @layer utilities, so an unlayered `transition: transform ...` would beat
+   * `transition-colors` outright and silently delete the hover colour fade on
+   * every button in the app. One rule owns the whole list instead. */
+  transition-property: color, background-color, border-color, box-shadow,
+    transform;
+  transition-duration: var(--motion-fast);
+  transition-timing-function: ease-out;
+}
+.ui-press:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Loading skeleton: a slow shimmer sweeping across a neutral block.
+ * WHY it loops where nothing else here does: it is the one case where the
+ * animation carries information — it is the only signal distinguishing "content
+ * is on its way" from "an empty grey box shipped by mistake". Under reduced
+ * motion that signal is carried by the flat tint plus the aria-busy/role
+ * attributes on the component instead, and the loop stops entirely. */
+@keyframes ui-skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+.ui-skeleton {
+  background-color: var(--color-line);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-line) 0%,
+    var(--color-surface) 50%,
+    var(--color-line) 100%
+  );
+  background-size: 200% 100%;
+  animation: ui-skeleton-shimmer var(--motion-ambient) linear infinite;
+}
+
+/* Respect reduced-motion: every transition in the shell is decorative.
+ * Durations elsewhere are expressed in milliseconds (metric units). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The blanket above is a FLOOR, not the whole answer — it can only make
+   * motion fast, and "fast" is still motion. These overrides remove it:
+   *   - `animation: none` is safe because of the entry-only invariant
+   *     documented at the top of this block; the static style is already final.
+   *   - the transform rules are the part the blanket cannot express. Without
+   *     them a card still hops 2 px and a button still shrinks, in 1 ms.
+   * Asserted by tests/e2e/ui-shell/animations.spec.ts under
+   * page.emulateMedia({ reducedMotion: "reduce" }). */
+  .ui-anim-progress-fill,
+  .ui-anim-toast-in,
+  .ui-skeleton {
+    animation: none !important;
+  }
+
+  /* Flat tint, no gradient: with the sweep stopped, a frozen half-lit gradient
+   * would read as a rendering bug rather than as a placeholder. */
+  .ui-skeleton {
+    background-image: none;
+  }
+
+  .ui-lift,
+  .ui-press {
+    transition: none !important;
+  }
+  .ui-lift:hover,
+  .ui-lift:active,
+  .ui-press:active:not(:disabled) {
+    transform: none !important;
+  }
+}

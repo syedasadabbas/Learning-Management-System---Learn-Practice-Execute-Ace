@@ -1,0 +1,125 @@
+{
+  "_comment": [
+    "CURATED VIDEO SOURCE — consumed by src/lib/videos/sources.ts (parseCuratedJson).",
+    "Only topicKey / video / durationSeconds / orderIndex are read; title and channel",
+    "are ignored by the parser and exist so this file is auditable by eye.",
+    "Every id below returned HTTP 200 from the keyless oEmbed endpoint on 2026-07-30,",
+    "which proves the video exists AND permits embedding. title/channel are verbatim",
+    "oEmbed `title` / `author_name`. durationSeconds was read keylessly from the public",
+    "watch page (`lengthSeconds`) — oEmbed does not carry duration.",
+    "Nothing here goes live automatically: the harvester stores these as `candidate`",
+    "rows and an admin must approve each one. See docs/research/CURATED_VIDEOS.md."
+  ],
+  "videos": [
+    { "topicKey": "web-basics-first-html-document", "video": "kUMe1FH4CHE", "durationSeconds": 14849, "orderIndex": 0, "title": "Learn HTML – Full Tutorial for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "web-basics-first-html-document", "video": "UB1O30fR-EE", "durationSeconds": 3642, "orderIndex": 1, "title": "HTML Crash Course For Absolute Beginners", "channel": "Traversy Media" },
+    { "topicKey": "web-basics-first-html-document", "video": "bWPMSSsVdPk", "durationSeconds": 736, "orderIndex": 2, "title": "Learn HTML in 12 Minutes", "channel": "Jake Wright" },
+
+    { "topicKey": "html-semantic-structure", "video": "YOsMJQfwqow", "durationSeconds": 572, "orderIndex": 0, "title": "HTML & CSS for Absolute Beginners: Semantic HTML", "channel": "Kevin Powell" },
+    { "topicKey": "html-semantic-structure", "video": "pQN-pnXPaVg", "durationSeconds": 7351, "orderIndex": 1, "title": "HTML Full Course - Build a Website Tutorial", "channel": "freeCodeCamp.org" },
+    { "topicKey": "html-semantic-structure", "video": "mU6anWqZJcc", "durationSeconds": 41452, "orderIndex": 2, "title": "Learn HTML5 and CSS3 From Scratch - Full Course", "channel": "freeCodeCamp.org" },
+
+    { "topicKey": "html-forms-tables-accessibility", "video": "fNcJuPIZ2WE", "durationSeconds": 1495, "orderIndex": 0, "title": "Learn HTML Forms In 25 Minutes", "channel": "Web Dev Simplified" },
+    { "topicKey": "html-forms-tables-accessibility", "video": "e2nkq3h1P68", "durationSeconds": 5585, "orderIndex": 1, "title": "Learn Accessibility - Full a11y Tutorial", "channel": "freeCodeCamp.org" },
+    { "topicKey": "html-forms-tables-accessibility", "video": "20SHvU2PKsM", "durationSeconds": 247, "orderIndex": 2, "title": "Introduction to Web Accessibility and W3C Standards", "channel": "W3C Web Accessibility Initiative (WAI)" },
+
+    { "topicKey": "css-selectors-cascade-specificity", "video": "ftk7nUmVOOw", "durationSeconds": 115, "orderIndex": 0, "title": "HTML & CSS for Absolute Beginners: Specificity + Dev tools", "channel": "Kevin Powell" },
+    { "topicKey": "css-selectors-cascade-specificity", "video": "Oh0TplG4nYw", "durationSeconds": 668, "orderIndex": 1, "title": "HTML & CSS for Beginners Part 16: CSS selectors and Specificity", "channel": "Kevin Powell" },
+    { "topicKey": "css-selectors-cascade-specificity", "video": "rIO5326FgPE", "durationSeconds": 502, "orderIndex": 2, "title": "Learn CSS Box Model In 8 Minutes", "channel": "Web Dev Simplified" },
+
+    { "topicKey": "css-flexbox-and-grid", "video": "JJSoEo8JSnc", "durationSeconds": 1199, "orderIndex": 0, "title": "Flexbox CSS In 20 Minutes", "channel": "Traversy Media" },
+    { "topicKey": "css-flexbox-and-grid", "video": "9zBsdzdE4sM", "durationSeconds": 1114, "orderIndex": 1, "title": "Learn CSS Grid in 20 Minutes", "channel": "Web Dev Simplified" },
+    { "topicKey": "css-flexbox-and-grid", "video": "jV8B24rSN5o", "durationSeconds": 1674, "orderIndex": 2, "title": "CSS Grid Layout Crash Course", "channel": "Traversy Media" },
+
+    { "topicKey": "css-mobile-first-responsive", "video": "srvUrASNj0s", "durationSeconds": 15064, "orderIndex": 0, "title": "Introduction To Responsive Web Design - HTML & CSS Tutorial", "channel": "freeCodeCamp.org" },
+    { "topicKey": "css-mobile-first-responsive", "video": "fx2YMLPNBA8", "durationSeconds": 2714, "orderIndex": 1, "title": "PB101: L11 - Responsive Development With Breakpoints & Media Queries (+ CSS Cascade & Specificity)", "channel": "Kevin Geary" },
+
+    { "topicKey": "js-values-types-functions", "video": "PkZNo7MFNFg", "durationSeconds": 12403, "orderIndex": 0, "title": "Learn JavaScript - Full Course for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "js-values-types-functions", "video": "W6NZfCO5SIk", "durationSeconds": 2897, "orderIndex": 1, "title": "JavaScript Course for Beginners – Your First Step to Web Development", "channel": "Programming with Mosh" },
+    { "topicKey": "js-values-types-functions", "video": "hdI2bqOjy3c", "durationSeconds": 6030, "orderIndex": 2, "title": "JavaScript Crash Course For Beginners", "channel": "Traversy Media" },
+
+    { "topicKey": "js-arrays-objects-dom", "video": "y17RuWkWdn8", "durationSeconds": 1117, "orderIndex": 0, "title": "Learn DOM Manipulation In 18 Minutes", "channel": "Web Dev Simplified" },
+    { "topicKey": "js-arrays-objects-dom", "video": "5fb2aPlgoys", "durationSeconds": 9681, "orderIndex": 1, "title": "JavaScript DOM Manipulation – Full Course for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "js-arrays-objects-dom", "video": "0ik6X4DJKCc", "durationSeconds": 2341, "orderIndex": 2, "title": "JavaScript DOM Crash Course - Part 1", "channel": "Traversy Media" },
+
+    { "topicKey": "js-events-and-async", "video": "XF1_MlZ5l6M", "durationSeconds": 1083, "orderIndex": 0, "title": "Learn JavaScript Event Listeners In 18 Minutes", "channel": "Web Dev Simplified" },
+    { "topicKey": "js-events-and-async", "video": "PoRJizFvM7s", "durationSeconds": 1470, "orderIndex": 1, "title": "Async JS Crash Course - Callbacks, Promises, Async Await", "channel": "Traversy Media" },
+    { "topicKey": "js-events-and-async", "video": "V_Kr9OSfDeU", "durationSeconds": 451, "orderIndex": 2, "title": "JavaScript Async Await", "channel": "Web Dev Simplified" },
+
+    { "topicKey": "git-fundamentals", "video": "RGOj5yH7evk", "durationSeconds": 4110, "orderIndex": 0, "title": "Git and GitHub for Beginners - Crash Course", "channel": "freeCodeCamp.org" },
+    { "topicKey": "git-fundamentals", "video": "8JJ101D3knE", "durationSeconds": 4153, "orderIndex": 1, "title": "Git Tutorial for Beginners: Learn Git in 1 Hour", "channel": "Programming with Mosh" },
+    { "topicKey": "git-fundamentals", "video": "USjZcfj8yxE", "durationSeconds": 958, "orderIndex": 2, "title": "Learn Git In 15 Minutes", "channel": "Colt Steele" },
+
+    { "topicKey": "git-branching-pull-requests", "video": "e2IbNHi4uCI", "durationSeconds": 1999, "orderIndex": 0, "title": "Git Branches Tutorial", "channel": "freeCodeCamp.org" },
+    { "topicKey": "git-branching-pull-requests", "video": "8lGpZkjnkt4", "durationSeconds": 112, "orderIndex": 1, "title": "GitHub Pull Request in 100 Seconds - Git a FREE sticker", "channel": "Fireship" },
+    { "topicKey": "git-branching-pull-requests", "video": "SWYqp7iY_Tc", "durationSeconds": 1962, "orderIndex": 2, "title": "Git & GitHub Crash Course For Beginners", "channel": "Traversy Media" },
+
+    { "topicKey": "deployment-going-live", "video": "oIsf9zE-TRI", "durationSeconds": 453, "orderIndex": 0, "title": "Deploying a simple website to Vercel (HTML, CSS, JavaScript)", "channel": "Vercel" },
+    { "topicKey": "deployment-going-live", "video": "VwJ1PTLTxoY", "durationSeconds": 1510, "orderIndex": 1, "title": "How to Deploy Your Website for Free on GitHub Pages, Vercel, and Netlify | Quick & Easy Guide", "channel": "Click Aur Fix" },
+    { "topicKey": "deployment-going-live", "video": "Z1A_myx3zuE", "durationSeconds": 422, "orderIndex": 2, "title": "How to Host a Website on Github Pages & Vercel? (FREE)", "channel": "Ali Solanki" },
+
+    { "topicKey": "oop-fundamentals", "video": "wN0x9eZLix4", "durationSeconds": 5425, "orderIndex": 0, "title": "Object Oriented Programming (OOP) in C++ Course", "channel": "freeCodeCamp.org" },
+    { "topicKey": "oop-fundamentals", "video": "EazrhHMySQw", "durationSeconds": 10169, "orderIndex": 1, "title": "C# OOP Full Course: Master Object-Oriented Programming (OOP) with Practical Examples", "channel": "CodeBeauty" },
+    { "topicKey": "oop-fundamentals", "video": "m1fJjNLzRag", "durationSeconds": 12121, "orderIndex": 2, "title": "Object Oriented Programming OOP in C++ | C++ Tutorial Beginners", "channel": "Codaming - Simplified Learning" },
+
+    { "topicKey": "oop-python", "video": "Ej_02ICOIgs", "durationSeconds": 7955, "orderIndex": 0, "title": "Object Oriented Programming with Python - Full Course for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "oop-python", "video": "iLRZi0Gu8Go", "durationSeconds": 9385, "orderIndex": 1, "title": "Python Object Oriented Programming (OOP) - Full Course for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "oop-python", "video": "xEZkR9BFXOI", "durationSeconds": 18235, "orderIndex": 2, "title": "Python Object Oriented Programming - Full Course For Beginners", "channel": "Alpha Brains Courses" },
+
+    { "topicKey": "oop-javascript", "video": "PFmuCDHHpwk", "durationSeconds": 3769, "orderIndex": 0, "title": "Object-oriented Programming in JavaScript: Made Super Simple | Mosh", "channel": "Programming with Mosh" },
+
+    { "topicKey": "dbms-sql-basics", "video": "HXV3zeQKqGY", "durationSeconds": 15639, "orderIndex": 0, "title": "SQL Tutorial - Full Database Course for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "dbms-sql-basics", "video": "7S_tz1z_5bA", "durationSeconds": 11419, "orderIndex": 1, "title": "SQL Course for Beginners [Full Course]", "channel": "Programming with Mosh" },
+
+    { "topicKey": "dbms-database-design", "video": "ztHopE5Wnpc", "durationSeconds": 29240, "orderIndex": 0, "title": "Database Design Course - Learn how to design and plan a database for beginners", "channel": "freeCodeCamp.org" },
+
+    { "topicKey": "dbms-normalization", "video": "GFQaEYEc8_8", "durationSeconds": 1714, "orderIndex": 0, "title": "Learn Database Normalization - 1NF, 2NF, 3NF, 4NF, 5NF", "channel": "Decomplexify" },
+    { "topicKey": "dbms-normalization", "video": "Ds7PGmtX7Ww", "durationSeconds": 6877, "orderIndex": 1, "title": "Database Normalization Explained: 1NF, 2NF, 3NF with Real Examples | Full Lecture – York University", "channel": "Mona Nasery" },
+    { "topicKey": "dbms-normalization", "video": "FzVCGou8SMA", "durationSeconds": 213, "orderIndex": 2, "title": "Learn Database Normalization Fast | 1NF, 2NF, 3NF Explained Simply (2025)", "channel": "DbSchema Database Designer" },
+
+    { "topicKey": "dsa-fundamentals", "video": "8hly31xKli0", "durationSeconds": 19328, "orderIndex": 0, "title": "Algorithms and Data Structures Tutorial - Full Course for Beginners", "channel": "freeCodeCamp.org" },
+    { "topicKey": "dsa-fundamentals", "video": "pkYVOmU3MgA", "durationSeconds": 45050, "orderIndex": 1, "title": "Data Structures and Algorithms in Python - Full Course for Beginners", "channel": "freeCodeCamp.org" },
+
+    { "topicKey": "dsa-data-structures", "video": "RBSGKlAvoiM", "durationSeconds": 28997, "orderIndex": 0, "title": "Data Structures Easy to Advanced Course - Full Tutorial from a Google Engineer", "channel": "freeCodeCamp.org" },
+    { "topicKey": "dsa-data-structures", "video": "zg9ih6SVACc", "durationSeconds": 10766, "orderIndex": 1, "title": "Data Structures - Computer Science Course for Beginners", "channel": "freeCodeCamp.org" },
+
+    { "topicKey": "dsa-big-o-complexity", "video": "BgLTDT03QtU", "durationSeconds": 1237, "orderIndex": 0, "title": "Big-O Notation - For Coding Interviews", "channel": "NeetCode" },
+    { "topicKey": "dsa-big-o-complexity", "video": "D6xkbGLQesk", "durationSeconds": 2182, "orderIndex": 1, "title": "Introduction to Big O Notation and Time Complexity (Data Structures & Algorithms #7)", "channel": "CS Dojo" },
+
+    { "topicKey": "prompt-engineering-basics", "video": "_ZvnD73m40o", "durationSeconds": 2496, "orderIndex": 0, "title": "Prompt Engineering Tutorial – Master ChatGPT and LLM Responses", "channel": "freeCodeCamp.org" },
+    { "topicKey": "prompt-engineering-basics", "video": "2BpCk4d2Cc0", "durationSeconds": 2264, "orderIndex": 1, "title": "Prompt Engineering Full Course", "channel": "Tech With Tim" },
+    { "topicKey": "prompt-engineering-basics", "video": "YhRfgYH_AoU", "durationSeconds": 3556, "orderIndex": 2, "title": "Prompt Engineering Full Course | From Beginner to Pro", "channel": "The iScale" },
+
+    { "topicKey": "prompt-engineering-for-developers", "video": "ScKCy2udln8", "durationSeconds": 11593, "orderIndex": 0, "title": "Prompt Engineering for Web Devs - ChatGPT and Bard Tutorial", "channel": "freeCodeCamp.org" },
+
+    { "topicKey": "claude-usage-basics", "video": "H6LchswC74Y", "durationSeconds": 12161, "orderIndex": 0, "title": "Claude AI 101: The Complete Beginner's Guide (Full Course Walkthrough)", "channel": "Kilo Loco" },
+    { "topicKey": "claude-usage-basics", "video": "kyB68hS-vco", "durationSeconds": 849, "orderIndex": 1, "title": "The Complete Claude Anthropic Tutorial", "channel": "Learn With Shopify" },
+
+    { "topicKey": "claude-code-workflow", "video": "gh2_PhgZGsM", "durationSeconds": 16067, "orderIndex": 0, "title": "Claude Code for Beginners Tutorial [Full Course]", "channel": "freeCodeCamp.org" },
+    { "topicKey": "claude-code-workflow", "video": "LIEuGD0pJ18", "durationSeconds": 663, "orderIndex": 1, "title": "Full Claude Code Tutorial: Beginner to Advanced in 11 Minutes", "channel": "Jack Roberts" },
+
+    { "topicKey": "llm-apps-rag-basics", "video": "sVcwVQRHIc8", "durationSeconds": 9191, "orderIndex": 0, "title": "Learn RAG From Scratch – Python AI Tutorial from a LangChain Engineer", "channel": "freeCodeCamp.org" },
+    { "topicKey": "llm-apps-rag-basics", "video": "o126p1QN_RI", "durationSeconds": 7689, "orderIndex": 1, "title": "Complete RAG Crash Course With Langchain In 2 Hours", "channel": "Krish Naik" },
+
+    { "topicKey": "llm-apps-production-rag", "video": "mHxLXzYjQRE", "durationSeconds": 27518, "orderIndex": 0, "title": "Production RAG with LangChain & Vector Databases – Full Course", "channel": "freeCodeCamp.org" },
+
+    { "topicKey": "cryptography-public-key", "video": "GSIDS_lvRv4", "durationSeconds": 380, "orderIndex": 0, "title": "Public Key Cryptography - Computerphile", "channel": "Computerphile" },
+    { "topicKey": "cryptography-public-key", "video": "4zahvcJ9glg", "durationSeconds": 520, "orderIndex": 1, "title": "The RSA Encryption Algorithm (1 of 2: Computing an Example)", "channel": "Eddie Woo" },
+
+    { "topicKey": "cryptography-symmetric-aes", "video": "O4xNJsjtN6E", "durationSeconds": 854, "orderIndex": 0, "title": "AES Explained (Advanced Encryption Standard) - Computerphile", "channel": "Computerphile" },
+    { "topicKey": "cryptography-symmetric-aes", "video": "VYech-c5Dic", "durationSeconds": 550, "orderIndex": 1, "title": "One Encryption Standard to Rule Them All! - Computerphile", "channel": "Computerphile" },
+
+    { "topicKey": "cryptography-hashing", "video": "b4b8ktEV4Bg", "durationSeconds": 492, "orderIndex": 0, "title": "Hashing Algorithms and Security - Computerphile", "channel": "Computerphile" },
+
+    { "topicKey": "cryptography-key-exchange", "video": "NmM9HA2MQGI", "durationSeconds": 520, "orderIndex": 0, "title": "Secret Key Exchange (Diffie-Hellman) - Computerphile", "channel": "Computerphile" },
+    { "topicKey": "cryptography-key-exchange", "video": "jkV1KEJGKRA", "durationSeconds": 492, "orderIndex": 1, "title": "End to End Encryption (E2EE) - Computerphile", "channel": "Computerphile" },
+
+    { "topicKey": "cybersecurity-fundamentals", "video": "inWWhr5tnEA", "durationSeconds": 427, "orderIndex": 0, "title": "What Is Cyber Security | How It Works? | Cyber Security In 7 Minutes", "channel": "Simplilearn" },
+    { "topicKey": "cybersecurity-fundamentals", "video": "7rG9tWvPG2E", "durationSeconds": 25191, "orderIndex": 1, "title": "Cyber Security Course 2026 [FREE] | Cyber Security Full Course For Beginners 2026", "channel": "Simplilearn" },
+    { "topicKey": "cybersecurity-fundamentals", "video": "z2hVCeiwvGk", "durationSeconds": 34059, "orderIndex": 2, "title": "Cyber Security Full Course 2026 (Free) | Cyber Security Course for Beginners", "channel": "Intellipaat" },
+
+    { "topicKey": "cybersecurity-tls-https", "video": "0TLDTodL7Lc", "durationSeconds": 933, "orderIndex": 0, "title": "Transport Layer Security (TLS) - Computerphile", "channel": "Computerphile" },
+
+    { "topicKey": "cybersecurity-web-vulnerabilities", "video": "rWHvp7rUka8", "durationSeconds": 502, "orderIndex": 0, "title": "2017 OWASP Top 10: Injection Attacks", "channel": "F5 DevCentral Community" }
+  ]
+}

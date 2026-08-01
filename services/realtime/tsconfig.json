@@ -1,0 +1,34 @@
+{
+  // Deliberately NOT extending the root tsconfig.json. This service is built,
+  // typechecked and deployed on its own host with its own node_modules; a
+  // reference to `../../tsconfig.json` would make `npm install && npm run build`
+  // inside a Docker context that copies only `services/realtime` fail, which is
+  // exactly the isolation the deployment depends on.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "commonjs",
+    // "node" rather than "bundler": there is no bundler here, Node resolves
+    // these requires at runtime.
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    // The four strictness switches `strict` does NOT turn on. `noUncheckedIndexedAccess`
+    // is the one that matters most here: this service indexes Maps and arrays of
+    // per-socket state constantly, and an undefined bucket read as a value is how a
+    // rate limiter silently stops limiting.
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "declaration": false,
+    "sourceMap": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
+}

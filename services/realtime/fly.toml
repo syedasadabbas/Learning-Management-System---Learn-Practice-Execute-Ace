@@ -1,0 +1,59 @@
+# =============================================================================
+# OPTIONAL. Fly.io deploys this service without this file (`fly launch` writes
+# one); it is committed so the settings that matter are reviewable in a diff.
+#
+# Rename `app` before deploying — it must be globally unique across Fly.
+# =============================================================================
+
+app = "lms-realtime"
+primary_region = "iad"
+
+[build]
+  # Same Dockerfile as Railway and Render. One build definition, three hosts.
+  dockerfile = "Dockerfile"
+
+[env]
+  # Fly does NOT inject PORT the way Railway and Render do; it maps the external
+  # port to `internal_port` below. Set explicitly so the two agree — a mismatch
+  # here is the classic Fly deploy that health-checks forever against nothing.
+  PORT = "8080"
+  LOG_LEVEL = "info"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+
+  # AUTO-STOP IS ON, AND THAT IS A DELIBERATE COST/BEHAVIOUR TRADE.
+  # A stopped machine costs nothing and cold-starts in a second or two. The
+  # consequence is that the FIRST client to open a class may wait for that
+  # start, and if it is slower than the client's timeout the client falls back to
+  # the REST chat history — degraded, not broken (src/lib/features.ts). An
+  # operator who wants no cold start sets auto_stop_machines = "off" and
+  # min_machines_running = 1, and pays for a machine that is idle overnight.
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # ONE. See railway.json: the rate limiter and presence registry are
+  # per-process, so two machines split a user's budget and the participant count.
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 400
+    soft_limit = 300
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/healthz"
+
+[[vm]]
+  # The smallest shared machine. This service holds sockets and small Maps; it is
+  # bound by connection count, not CPU or memory. 256 MB is ample for a cohort.
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+# NOTE ON SECRETS: REALTIME_SHARED_SECRET and DATABASE_URL are NOT in this file
+# and must never be. Set them with `fly secrets set`, which stores them encrypted
+# and restarts the machine. Anything under [env] is committed to git in plain text.

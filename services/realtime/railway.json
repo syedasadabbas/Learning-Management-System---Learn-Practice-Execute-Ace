@@ -1,0 +1,19 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "//": "OPTIONAL CONVENIENCE. Railway deploys this service without this file — it detects package.json and runs the build and start scripts. The file exists so the health check and the restart policy are recorded in the repository rather than clicked into a dashboard nobody can diff. Nothing in the service reads it, and its absence changes no behaviour.",
+  "build": {
+    "//": "DOCKERFILE rather than NIXPACKS so the image is byte-identical to what Fly and Render build, and to what a developer builds locally. One build definition, three hosts.",
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "//": "The start command is the Dockerfile's CMD. Not repeated here: two places to change it is one place to forget.",
+    "healthcheckPath": "/healthz",
+    "healthcheckTimeout": 30,
+    "//restart": "ON_FAILURE with a bounded retry. ALWAYS would mask a configuration error as a restart loop — src/config.ts exits 1 on a missing REALTIME_SHARED_SECRET, and that must surface as a failed deploy, not as a service that flaps forever while students see a dead chat.",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 5,
+    "//replicas": "ONE. The rate limiter and the presence registry are per-process Maps (see src/ratelimit.ts): with two replicas behind a load balancer, a user's two tabs can land on different instances and get double budget, and presence counts split. Scaling out requires a shared store, which this stack does not have.",
+    "numReplicas": 1
+  }
+}

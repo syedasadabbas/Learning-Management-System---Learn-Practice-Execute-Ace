@@ -1,0 +1,32 @@
+{
+  "name": "@lms/realtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone Socket.io service for Code Queens Hub live-class chat, Q&A and presence. Deployed separately from the Next.js app.",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "pg": "^8.22.0",
+    "socket.io": "^4.8.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.20.0",
+    "socket.io-client": "^4.8.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}
