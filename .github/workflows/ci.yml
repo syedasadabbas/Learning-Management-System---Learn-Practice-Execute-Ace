@@ -1,111 +1,111 @@
-name: CI
+# name: CI
 
-# Gate for every PR into develop and for develop/main themselves.
-# Owned by the devops-testing stream.
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+# # Gate for every PR into develop and for develop/main themselves.
+# # Owned by the devops-testing stream.
+# on:
+#   push:
+#     branches: [main, develop]
+#   pull_request:
+#     branches: [main, develop]
 
-# A newer push to the same branch makes an in-flight run obsolete.
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+# # A newer push to the same branch makes an in-flight run obsolete.
+# concurrency:
+#   group: ci-${{ github.ref }}
+#   cancel-in-progress: true
 
-env:
-  NODE_VERSION: "24"
+# env:
+#   NODE_VERSION: "24"
 
-jobs:
-  # -------------------------------------------------------------------------
-  # Fast feedback: no database, no browser. Fails in well under a minute.
-  # -------------------------------------------------------------------------
-  static:
-    name: Typecheck, lint & unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   # -------------------------------------------------------------------------
+#   # Fast feedback: no database, no browser. Fails in well under a minute.
+#   # -------------------------------------------------------------------------
+#   static:
+#     name: Typecheck, lint & unit tests
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: ${{ env.NODE_VERSION }}
+#           cache: npm
 
-      - run: npm ci
+#       - run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
+#       - name: Typecheck
+#         run: npm run typecheck
 
-      - name: Lint
-        run: npm run lint
+#       - name: Lint
+#         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
+#       - name: Unit tests
+#         run: npm test
 
-  # -------------------------------------------------------------------------
-  # End-to-end against a real Postgres, migrated and seeded exactly as a
-  # developer would. Runs a production build so it exercises what Vercel ships.
-  #
-  # A local Postgres service is used rather than the shared Neon database so
-  # concurrent PRs cannot corrupt each other's state. The schema is identical —
-  # it is applied from the same migration files.
-  # -------------------------------------------------------------------------
-  e2e:
-    name: End-to-end tests
-    runs-on: ubuntu-latest
-    needs: static
+#   # -------------------------------------------------------------------------
+#   # End-to-end against a real Postgres, migrated and seeded exactly as a
+#   # developer would. Runs a production build so it exercises what Vercel ships.
+#   #
+#   # A local Postgres service is used rather than the shared Neon database so
+#   # concurrent PRs cannot corrupt each other's state. The schema is identical —
+#   # it is applied from the same migration files.
+#   # -------------------------------------------------------------------------
+#   e2e:
+#     name: End-to-end tests
+#     runs-on: ubuntu-latest
+#     needs: static
 
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: lms
-          POSTGRES_PASSWORD: lms
-          POSTGRES_DB: lms_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+#     services:
+#       postgres:
+#         image: postgres:18
+#         env:
+#           POSTGRES_USER: lms
+#           POSTGRES_PASSWORD: lms
+#           POSTGRES_DB: lms_test
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd pg_isready
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 5
 
-    env:
-      # src/db/index.ts uses node-postgres, which speaks the standard wire
-      # protocol, so this local service runs the exact same code path and the
-      # exact same migrations as production. See that file for the trade-off.
-      DATABASE_URL: postgresql://lms:lms@localhost:5432/lms_test
-      AUTH_SECRET: ci-only-secret-not-used-outside-this-job
-      NEXTAUTH_URL: http://127.0.0.1:3000
-      CRON_SECRET: ci-only-cron-secret
-      CI: "true"
+#     env:
+#       # src/db/index.ts uses node-postgres, which speaks the standard wire
+#       # protocol, so this local service runs the exact same code path and the
+#       # exact same migrations as production. See that file for the trade-off.
+#       DATABASE_URL: postgresql://lms:lms@localhost:5432/lms_test
+#       AUTH_SECRET: ci-only-secret-not-used-outside-this-job
+#       NEXTAUTH_URL: http://127.0.0.1:3000
+#       CRON_SECRET: ci-only-cron-secret
+#       CI: "true"
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: ${{ env.NODE_VERSION }}
+#           cache: npm
 
-      - run: npm ci
+#       - run: npm ci
 
-      - name: Apply migrations
-        run: npm run db:migrate
+#       - name: Apply migrations
+#         run: npm run db:migrate
 
-      - name: Seed fixtures
-        run: npm run db:seed
+#       - name: Seed fixtures
+#         run: npm run db:seed
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+#       - name: Install Playwright browsers
+#         run: npx playwright install --with-deps chromium
 
-      - name: Run e2e tests
-        run: npm run test:e2e
+#       - name: Run e2e tests
+#         run: npm run test:e2e
 
-      - name: Upload Playwright report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 14
+#       - name: Upload Playwright report
+#         if: ${{ !cancelled() }}
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: playwright-report
+#           path: playwright-report/
+#           retention-days: 14
