@@ -1,208 +1,208 @@
-# =============================================================================
-# SCHEDULED QUEUE DRAIN — the floor under the async job queue.
-# Owner: the async-queues stream.
-# -----------------------------------------------------------------------------
-# WHY THIS WORKFLOW EXISTS AT ALL, AND WHY IT IS NOT A vercel.json CRON.
-#
-# The queue's primary trigger is `after()` attached to the grading request
-# (src/lib/queue/schedule.ts), which delivers the common case — grade, email
-# seconds later — with no scheduler involved. What it does NOT provide is a floor:
-# a retry scheduled 240_000 ms out fires only when somebody happens to make a
-# request that triggers a drain. At 03:00 nobody does, so "retry in four minutes"
-# silently means "retry whenever the next student loads a page".
-#
-# The obvious fix is a third entry in vercel.json. It is not available:
-# FREE_STACK.md commits this project to the Vercel HOBBY plan, whose documented
-# limits are TWO cron jobs per project invoked at most ONCE PER DAY whatever
-# expression is written. Both slots are already spent (ingest-submissions and
-# finalize-exams), and a once-a-day drain would be worse than none because it
-# would LOOK like a scheduler. FREE_STACK.md already names GitHub Actions cron as
-# this project's scheduler for exactly this reason (row: "Grand-quiz sweeper ...
-# GitHub Actions cron (free) or Vercel Cron hobby ... shared secret").
-#
-# -----------------------------------------------------------------------------
-# REPOSITORY SECRETS THIS WORKFLOW REQUIRES. Settings -> Secrets and variables ->
-# Actions -> New repository secret. Both are REQUIRED; the workflow fails loudly
-# and immediately if either is missing rather than reporting a green run that did
-# nothing.
-#
-#   CRON_SECRET   The exact value of the deployed app's CRON_SECRET environment
-#                 variable (Vercel -> Project -> Settings -> Environment
-#                 Variables). This is the ONLY credential /api/cron/drain-jobs
-#                 accepts; no user role satisfies it. If it does not match, every
-#                 run fails with 401 — which is the intended, visible outcome of a
-#                 rotated secret, not a bug to work around.
-#
-#   APP_ORIGIN    Absolute origin of the deployment to drain, no trailing slash,
-#                 e.g. https://your-app.vercel.app . A SECRET rather than a
-#                 variable so the production hostname is not published in run logs
-#                 of a public repository.
-#
-# -----------------------------------------------------------------------------
-# HONEST LIMITS OF GITHUB'S SCHEDULER, since the point of this file is a
-# dependable floor and overstating it would defeat that:
-#
-#   * `schedule` is BEST EFFORT. GitHub explicitly does not guarantee on-time
-#     execution and delays of several minutes are normal at times of high load
-#     (the top of the hour is the worst). A 5-minute expression therefore means
-#     "usually within about 5-10 minutes", which is still a floor and is still
-#     enormously better than "when a student next loads a page";
-#   * scheduled workflows are DISABLED AUTOMATICALLY after 60 days of repository
-#     inactivity, and GitHub emails the repository admins when that happens. On a
-#     project with a live cohort this does not arise; on a dormant one, re-enable
-#     the workflow from the Actions tab;
-#   * `schedule` runs only on the DEFAULT BRANCH's copy of this file, and never on
-#     forks. Editing it on a feature branch changes nothing until it merges.
-#
-# The queue is designed so that all of this degrades rather than breaks: a missed
-# tick delays a retry, it does not lose one. `run_after` and the lease are both
-# written by the DATABASE's clock (src/lib/queue/store.ts), so a job stays exactly
-# as eligible as it was until something drains it.
-# =============================================================================
-name: Drain job queue
+# # =============================================================================
+# # SCHEDULED QUEUE DRAIN — the floor under the async job queue.
+# # Owner: the async-queues stream.
+# # -----------------------------------------------------------------------------
+# # WHY THIS WORKFLOW EXISTS AT ALL, AND WHY IT IS NOT A vercel.json CRON.
+# #
+# # The queue's primary trigger is `after()` attached to the grading request
+# # (src/lib/queue/schedule.ts), which delivers the common case — grade, email
+# # seconds later — with no scheduler involved. What it does NOT provide is a floor:
+# # a retry scheduled 240_000 ms out fires only when somebody happens to make a
+# # request that triggers a drain. At 03:00 nobody does, so "retry in four minutes"
+# # silently means "retry whenever the next student loads a page".
+# #
+# # The obvious fix is a third entry in vercel.json. It is not available:
+# # FREE_STACK.md commits this project to the Vercel HOBBY plan, whose documented
+# # limits are TWO cron jobs per project invoked at most ONCE PER DAY whatever
+# # expression is written. Both slots are already spent (ingest-submissions and
+# # finalize-exams), and a once-a-day drain would be worse than none because it
+# # would LOOK like a scheduler. FREE_STACK.md already names GitHub Actions cron as
+# # this project's scheduler for exactly this reason (row: "Grand-quiz sweeper ...
+# # GitHub Actions cron (free) or Vercel Cron hobby ... shared secret").
+# #
+# # -----------------------------------------------------------------------------
+# # REPOSITORY SECRETS THIS WORKFLOW REQUIRES. Settings -> Secrets and variables ->
+# # Actions -> New repository secret. Both are REQUIRED; the workflow fails loudly
+# # and immediately if either is missing rather than reporting a green run that did
+# # nothing.
+# #
+# #   CRON_SECRET   The exact value of the deployed app's CRON_SECRET environment
+# #                 variable (Vercel -> Project -> Settings -> Environment
+# #                 Variables). This is the ONLY credential /api/cron/drain-jobs
+# #                 accepts; no user role satisfies it. If it does not match, every
+# #                 run fails with 401 — which is the intended, visible outcome of a
+# #                 rotated secret, not a bug to work around.
+# #
+# #   APP_ORIGIN    Absolute origin of the deployment to drain, no trailing slash,
+# #                 e.g. https://your-app.vercel.app . A SECRET rather than a
+# #                 variable so the production hostname is not published in run logs
+# #                 of a public repository.
+# #
+# # -----------------------------------------------------------------------------
+# # HONEST LIMITS OF GITHUB'S SCHEDULER, since the point of this file is a
+# # dependable floor and overstating it would defeat that:
+# #
+# #   * `schedule` is BEST EFFORT. GitHub explicitly does not guarantee on-time
+# #     execution and delays of several minutes are normal at times of high load
+# #     (the top of the hour is the worst). A 5-minute expression therefore means
+# #     "usually within about 5-10 minutes", which is still a floor and is still
+# #     enormously better than "when a student next loads a page";
+# #   * scheduled workflows are DISABLED AUTOMATICALLY after 60 days of repository
+# #     inactivity, and GitHub emails the repository admins when that happens. On a
+# #     project with a live cohort this does not arise; on a dormant one, re-enable
+# #     the workflow from the Actions tab;
+# #   * `schedule` runs only on the DEFAULT BRANCH's copy of this file, and never on
+# #     forks. Editing it on a feature branch changes nothing until it merges.
+# #
+# # The queue is designed so that all of this degrades rather than breaks: a missed
+# # tick delays a retry, it does not lose one. `run_after` and the lease are both
+# # written by the DATABASE's clock (src/lib/queue/store.ts), so a job stays exactly
+# # as eligible as it was until something drains it.
+# # =============================================================================
+# name: Drain job queue
 
-on:
-  schedule:
-    # Every 5 minutes. Chosen against the retry ladder it exists to serve: the
-    # backoffs are 30_000 / 60_000 / 120_000 / 240_000 ms, so a 300_000 ms tick
-    # adds at most one interval of lag to any single retry and the whole 5-attempt
-    # ladder still completes inside about 12 minutes. Tighter buys nothing — the
-    # scheduler's own jitter is of the same order. Looser would make the first
-    # 30_000 ms backoff meaningless.
-    - cron: "*/5 * * * *"
-  # So an operator can drain on demand — after fixing a relay, or to confirm the
-  # secrets are right without waiting for a tick. This is the repair path from
-  # src/lib/queue/schedule.ts's trigger 3.
-  workflow_dispatch:
+# on:
+#   schedule:
+#     # Every 5 minutes. Chosen against the retry ladder it exists to serve: the
+#     # backoffs are 30_000 / 60_000 / 120_000 / 240_000 ms, so a 300_000 ms tick
+#     # adds at most one interval of lag to any single retry and the whole 5-attempt
+#     # ladder still completes inside about 12 minutes. Tighter buys nothing — the
+#     # scheduler's own jitter is of the same order. Looser would make the first
+#     # 30_000 ms backoff meaningless.
+#     - cron: "*/5 * * * *"
+#   # So an operator can drain on demand — after fixing a relay, or to confirm the
+#   # secrets are right without waiting for a tick. This is the repair path from
+#   # src/lib/queue/schedule.ts's trigger 3.
+#   workflow_dispatch:
 
-# Nothing here reads or writes the repository. Stated explicitly so the token this
-# job carries cannot be used for anything if a step is ever added carelessly.
-permissions:
-  contents: read
+# # Nothing here reads or writes the repository. Stated explicitly so the token this
+# # job carries cannot be used for anything if a step is ever added carelessly.
+# permissions:
+#   contents: read
 
-# A tick that starts while the previous one is still running would claim the same
-# queue. That is SAFE — `for update skip locked` means two drains partition the
-# work rather than colliding — but it is pointless, and cancelling the older run
-# would abandon a drain mid-batch and leave its jobs leased for LEASE_MS. So:
-# queue up, never cancel.
-concurrency:
-  group: drain-jobs
-  cancel-in-progress: false
+# # A tick that starts while the previous one is still running would claim the same
+# # queue. That is SAFE — `for update skip locked` means two drains partition the
+# # work rather than colliding — but it is pointless, and cancelling the older run
+# # would abandon a drain mid-batch and leave its jobs leased for LEASE_MS. So:
+# # queue up, never cancel.
+# concurrency:
+#   group: drain-jobs
+#   cancel-in-progress: false
 
-jobs:
-  drain:
-    name: POST /api/cron/drain-jobs
-    runs-on: ubuntu-latest
-    # A drain is bounded at DRAIN_BUDGET_MS = 25_000 ms server-side and the route
-    # declares maxDuration = 60 s. Three attempts plus waits cannot legitimately
-    # exceed this; if it does, something is hanging and failing the run is right.
-    timeout-minutes: 5
+# jobs:
+#   drain:
+#     name: POST /api/cron/drain-jobs
+#     runs-on: ubuntu-latest
+#     # A drain is bounded at DRAIN_BUDGET_MS = 25_000 ms server-side and the route
+#     # declares maxDuration = 60 s. Three attempts plus waits cannot legitimately
+#     # exceed this; if it does, something is hanging and failing the run is right.
+#     timeout-minutes: 5
 
-    steps:
-      - name: Check the required secrets are present
-        # FAIL LOUDLY, FIRST. Without this the curl below would post to
-        # "/api/cron/drain-jobs" against an empty origin, get a curl error, and the
-        # cause would be buried in an exit code. A missing secret is the single
-        # most likely reason this workflow does not work on a fresh repository, so
-        # it gets its own step with its own message.
-        env:
-          APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          set -euo pipefail
-          missing=""
-          [ -n "${APP_ORIGIN}" ] || missing="${missing} APP_ORIGIN"
-          [ -n "${CRON_SECRET}" ] || missing="${missing} CRON_SECRET"
-          if [ -n "${missing}" ]; then
-            echo "::error title=Queue drain not configured::Missing repository secret(s):${missing}. See the header of .github/workflows/drain-jobs.yml for what each one is and where to get it."
-            exit 1
-          fi
-          case "${APP_ORIGIN}" in
-            https://*) ;;
-            *) echo "::error title=Queue drain misconfigured::APP_ORIGIN must be an absolute https origin with no trailing slash." ; exit 1 ;;
-          esac
+#     steps:
+#       - name: Check the required secrets are present
+#         # FAIL LOUDLY, FIRST. Without this the curl below would post to
+#         # "/api/cron/drain-jobs" against an empty origin, get a curl error, and the
+#         # cause would be buried in an exit code. A missing secret is the single
+#         # most likely reason this workflow does not work on a fresh repository, so
+#         # it gets its own step with its own message.
+#         env:
+#           APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
+#           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+#         run: |
+#           set -euo pipefail
+#           missing=""
+#           [ -n "${APP_ORIGIN}" ] || missing="${missing} APP_ORIGIN"
+#           [ -n "${CRON_SECRET}" ] || missing="${missing} CRON_SECRET"
+#           if [ -n "${missing}" ]; then
+#             echo "::error title=Queue drain not configured::Missing repository secret(s):${missing}. See the header of .github/workflows/drain-jobs.yml for what each one is and where to get it."
+#             exit 1
+#           fi
+#           case "${APP_ORIGIN}" in
+#             https://*) ;;
+#             *) echo "::error title=Queue drain misconfigured::APP_ORIGIN must be an absolute https origin with no trailing slash." ; exit 1 ;;
+#           esac
 
-      - name: Drain the queue
-        env:
-          APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          set -uo pipefail
+#       - name: Drain the queue
+#         env:
+#           APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
+#           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+#         run: |
+#           set -uo pipefail
 
-          URL="${APP_ORIGIN%/}/api/cron/drain-jobs"
+#           URL="${APP_ORIGIN%/}/api/cron/drain-jobs"
 
-          # THREE ATTEMPTS, 5000 ms apart, and then a HARD FAILURE.
-          #
-          # Retried because a single dropped TCP connection between GitHub and
-          # Vercel is not worth a red alarm every five minutes — an alarm that
-          # cries wolf is an alarm that gets muted, and a muted alarm is how the
-          # gap this workflow closes reopens without anybody noticing.
-          #
-          # Bounded at three, and NOT retried on an HTTP status, because a 401 or a
-          # 503 is a real configuration fault: retrying it would convert "the
-          # secret is wrong" into a slow green-ish run. Only the absence of any
-          # response at all is retried.
-          attempt=0
-          status=""
-          while [ "${attempt}" -lt 3 ]; do
-            attempt=$((attempt + 1))
-            status="$(curl --silent --show-error \
-                           --connect-timeout 10 --max-time 90 \
-                           --request POST \
-                           --header "authorization: Bearer ${CRON_SECRET}" \
-                           --header "accept: application/json" \
-                           --output response.json \
-                           --write-out '%{http_code}' \
-                           "${URL}")" && break
-            echo "::warning title=Queue drain attempt ${attempt} failed::No HTTP response from the app. Retrying in 5000 ms."
-            status=""
-            sleep 5
-          done
+#           # THREE ATTEMPTS, 5000 ms apart, and then a HARD FAILURE.
+#           #
+#           # Retried because a single dropped TCP connection between GitHub and
+#           # Vercel is not worth a red alarm every five minutes — an alarm that
+#           # cries wolf is an alarm that gets muted, and a muted alarm is how the
+#           # gap this workflow closes reopens without anybody noticing.
+#           #
+#           # Bounded at three, and NOT retried on an HTTP status, because a 401 or a
+#           # 503 is a real configuration fault: retrying it would convert "the
+#           # secret is wrong" into a slow green-ish run. Only the absence of any
+#           # response at all is retried.
+#           attempt=0
+#           status=""
+#           while [ "${attempt}" -lt 3 ]; do
+#             attempt=$((attempt + 1))
+#             status="$(curl --silent --show-error \
+#                            --connect-timeout 10 --max-time 90 \
+#                            --request POST \
+#                            --header "authorization: Bearer ${CRON_SECRET}" \
+#                            --header "accept: application/json" \
+#                            --output response.json \
+#                            --write-out '%{http_code}' \
+#                            "${URL}")" && break
+#             echo "::warning title=Queue drain attempt ${attempt} failed::No HTTP response from the app. Retrying in 5000 ms."
+#             status=""
+#             sleep 5
+#           done
 
-          if [ -z "${status}" ]; then
-            echo "::error title=Queue drain unreachable::No HTTP response from ${URL} after 3 attempts. The queue was NOT drained; retries scheduled by the backoff policy are stalled until the next tick."
-            exit 1
-          fi
+#           if [ -z "${status}" ]; then
+#             echo "::error title=Queue drain unreachable::No HTTP response from ${URL} after 3 attempts. The queue was NOT drained; retries scheduled by the backoff policy are stalled until the next tick."
+#             exit 1
+#           fi
 
-          echo "HTTP ${status}"
-          # Bodies are small (a DrainReport plus six counts) and carry no student
-          # data — the payloads are two integers per job. Printed because when this
-          # fails, the body IS the diagnostic.
-          cat response.json || true
-          echo
+#           echo "HTTP ${status}"
+#           # Bodies are small (a DrainReport plus six counts) and carry no student
+#           # data — the payloads are two integers per job. Printed because when this
+#           # fails, the body IS the diagnostic.
+#           cat response.json || true
+#           echo
 
-          # ANY NON-200 FAILS THE RUN. The route deliberately answers 200 even when
-          # it dead-letters jobs (a sweep that ran and reported problems is a
-          # successful sweep), so a non-200 here is never "the queue had a bad day"
-          # — it is 401 wrong/rotated secret, 403 the confused-deputy guard, 503
-          # CRON_SECRET unset on the deployment, or 500. Every one of those means
-          # nothing is draining, which is the condition this workflow exists to
-          # make impossible to miss.
-          if [ "${status}" != "200" ]; then
-            echo "::error title=Queue drain failed (HTTP ${status})::/api/cron/drain-jobs did not return 200, so NOTHING WAS DRAINED. 401 = CRON_SECRET does not match the deployment's value. 403 = the request carried a session cookie. 503 = CRON_SECRET is not set on the deployment at all. See src/app/api/cron/drain-jobs/route.ts."
-            exit 1
-          fi
+#           # ANY NON-200 FAILS THE RUN. The route deliberately answers 200 even when
+#           # it dead-letters jobs (a sweep that ran and reported problems is a
+#           # successful sweep), so a non-200 here is never "the queue had a bad day"
+#           # — it is 401 wrong/rotated secret, 403 the confused-deputy guard, 503
+#           # CRON_SECRET unset on the deployment, or 500. Every one of those means
+#           # nothing is draining, which is the condition this workflow exists to
+#           # make impossible to miss.
+#           if [ "${status}" != "200" ]; then
+#             echo "::error title=Queue drain failed (HTTP ${status})::/api/cron/drain-jobs did not return 200, so NOTHING WAS DRAINED. 401 = CRON_SECRET does not match the deployment's value. 403 = the request carried a session cookie. 503 = CRON_SECRET is not set on the deployment at all. See src/app/api/cron/drain-jobs/route.ts."
+#             exit 1
+#           fi
 
-          # `ok:false` with a 200 should be impossible on this route, but asserting
-          # it costs one line and the alternative is trusting a status code to
-          # describe a body.
-          if ! grep -q '"ok":true' response.json; then
-            echo "::error title=Queue drain returned an error envelope::HTTP 200 with ok != true. The body is above."
-            exit 1
-          fi
+#           # `ok:false` with a 200 should be impossible on this route, but asserting
+#           # it costs one line and the alternative is trusting a status code to
+#           # describe a body.
+#           if ! grep -q '"ok":true' response.json; then
+#             echo "::error title=Queue drain returned an error envelope::HTTP 200 with ok != true. The body is above."
+#             exit 1
+#           fi
 
-          # A SUMMARY, NOT A FAILURE, for dead letters. `deadLettered` is the number
-          # an operator watches; it is not a reason to fail the scheduler, because a
-          # permanently red schedule is a schedule people stop reading.
-          dead="$(sed -n 's/.*"deadLettered":\([0-9]*\).*/\1/p' response.json | head -n1)"
-          claimed="$(sed -n 's/.*"claimed":\([0-9]*\).*/\1/p' response.json | head -n1)"
-          {
-            echo "### Queue drain"
-            echo ""
-            echo "- claimed: \`${claimed:-?}\`"
-            echo "- dead-lettered this run: \`${dead:-?}\`"
-          } >> "${GITHUB_STEP_SUMMARY}"
+#           # A SUMMARY, NOT A FAILURE, for dead letters. `deadLettered` is the number
+#           # an operator watches; it is not a reason to fail the scheduler, because a
+#           # permanently red schedule is a schedule people stop reading.
+#           dead="$(sed -n 's/.*"deadLettered":\([0-9]*\).*/\1/p' response.json | head -n1)"
+#           claimed="$(sed -n 's/.*"claimed":\([0-9]*\).*/\1/p' response.json | head -n1)"
+#           {
+#             echo "### Queue drain"
+#             echo ""
+#             echo "- claimed: \`${claimed:-?}\`"
+#             echo "- dead-lettered this run: \`${dead:-?}\`"
+#           } >> "${GITHUB_STEP_SUMMARY}"
 
-          if [ -n "${dead:-}" ] && [ "${dead}" != "0" ]; then
-            echo "::warning title=${dead} job(s) dead-lettered::Inspect them at GET /api/admin/jobs?status=dead (admin session required) and requeue with POST /api/admin/jobs once the cause is fixed."
-          fi
+#           if [ -n "${dead:-}" ] && [ "${dead}" != "0" ]; then
+#             echo "::warning title=${dead} job(s) dead-lettered::Inspect them at GET /api/admin/jobs?status=dead (admin session required) and requeue with POST /api/admin/jobs once the cause is fixed."
+#           fi
