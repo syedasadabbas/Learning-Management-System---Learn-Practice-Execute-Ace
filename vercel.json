@@ -3,17 +3,14 @@
   "framework": "nextjs",
   "crons": [
     {
-      "//": "Pulls new rows from each active assignment's Google Sheet. Ingestion is idempotent (unique index on assignment + sheet_row_ref), so an overlapping or repeated run cannot duplicate submissions. Hourly is frequent enough that a student sees their submission appear soon after filing it, without hammering the published-CSV endpoint.",
       "path": "/api/cron/ingest-submissions",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
-      "//": "SAFETY NET ONLY for grand-quiz attempts whose 120-minute deadline passed with the browser closed - a dead battery, a closed laptop, a student who simply walked away. The normal paths are the client auto-submitter and lazy finalize-on-read, and all three converge because submit is idempotent (invariant I3 in docs/GRAND_QUIZ_INVARIANTS.md). Hourly is deliberate rather than aggressive: nobody is waiting on this sweep, since anyone still at their screen is served by the other two triggers. The lag only affects when an abandoned attempt's zero-scored unanswered rows get written, and I4 guarantees they are written identically whichever trigger fires.",
       "path": "/api/cron/finalize-exams",
-      "schedule": "0 * * * *"
+      "schedule": "5 0 * * *"
     },
     {
-      "//": "AUDIT TRAIL RETENTION, AND IT IS A DRY RUN ON PURPOSE. The handler defaults to dryRun and refuses to delete without an explicit confirm=exported flag, which a cron path cannot supply (Vercel crons issue a bare GET/POST with no query string). So this scheduled entry REPORTS how many rows are past the retention window and deletes nothing. That is deliberate: there is no cold-storage archive on this stack (see src/lib/activity/retention.ts), so a prune is a permanent deletion of evidence, and a feature must not begin silently deleting an audit trail merely because it shipped. An operator who wants real pruning exports the window first and then calls the route with ?dryRun=0&confirm=exported - a documented, deliberate act. Daily at 03:15 UTC: off the hourly boundary the other two crons share, so three sweeps do not contend for the same pooled connections.",
       "path": "/api/cron/prune-activity",
       "schedule": "15 3 * * *"
     }
