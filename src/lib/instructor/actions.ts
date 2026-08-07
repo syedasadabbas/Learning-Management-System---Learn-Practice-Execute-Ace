@@ -47,6 +47,9 @@ import {
 } from "./admin";
 import { buildCsv, exportFilename, GRADE_EXPORT_COLUMNS } from "./csv";
 import { applyGrade, GradeError, parseGradePayload } from "./grading";
+import { persistMissedDeadlinePenalties } from "@/lib/submissions/deadline-penalties";
+import { ingestAllAssignments } from "@/lib/submissions/ingest";
+import { ABORT_ADVICE } from "@/lib/submissions/types";
 
 export type ActionResult<T = undefined> =
   | { ok: true; data: T }
@@ -116,6 +119,96 @@ export async function gradeSubmissionAction(
         overridden: result.overridden,
         stars: result.stars,
         penaltiesIssued: result.penaltiesIssued,
+      },
+    };
+  } catch (error) {
+    return toFailure(error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Manual submission sync (instructor OR admin)
+// ---------------------------------------------------------------------------
+
+/** What the sync button renders. A flat, already-summarised shape — the client
+ *  must not have to know the `SweepReport` type to say what happened. */
+export interface SyncSubmissionsSummary {
+  assignmentsConsidered: number;
+  assignmentsIngested: number;
+  assignmentsSkipped: number;
+  inserted: number;
+  updated: number;
+  unchanged: number;
+  skippedRows: number;
+  missedDeadlinePenalties: number;
+  durationMs: number;
+  /** One line per assignment that did NO work, with the operator's next step. */
+  problems: { assignmentId: number; title: string; reason: string; advice: string }[];
+}
+
+/**
+ * Run the Google Sheet sweep NOW, on demand, instead of waiting for the cron.
+ *
+ * WHY AN ACTION AND NOT THE CRON ROUTE. `POST /api/cron/ingest-submissions` is
+ * deliberately unreachable from a browser: it accepts only `Authorization: Bearer
+ * $CRON_SECRET` and additionally rejects any request carrying a session cookie
+ * (see that route's header). Putting `CRON_SECRET` anywhere a button could reach
+ * it is precisely the confused-deputy leak that check exists to prevent. This
+ * action re-uses the same two domain calls in the same order under a STAFF
+ * session guard instead — no secret is involved and no route contract changes.
+ *
+ * Ingestion is idempotent (`submissions_row_ref_idx`), so pressing the button
+ * while the cron happens to be running costs at most a few `duplicate_row_ref_in_db`
+ * skips; it cannot double-insert.
+ *
+ * `triggeredBy: "manual"` so /assignments/ingest-status can still tell a human
+ * pressing the button apart from evidence that the scheduler is alive.
+ */
+export async function syncSubmissionsAction(): Promise<ActionResult<SyncSubmissionsSummary>> {
+  try {
+    await requireStaffAction();
+
+    const startedAt = Date.now();
+    const sweep = await ingestAllAssignments({ triggeredBy: "manual" });
+
+    // Ingestion first, then missed-deadline penalties — same ordering as the cron
+    // route, and for the same reason: a student whose response landed in THIS run
+    // must not be penalised for not submitting.
+    const missedDeadlinePenalties = await persistMissedDeadlinePenalties();
+
+    // Every page that reads submissions, so the instructor sees the new rows on
+    // the next paint rather than after a manual reload.
+    revalidatePath("/instructor/grading");
+    revalidatePath("/instructor");
+    revalidatePath("/instructor/analytics");
+    revalidatePath("/assignments");
+    revalidatePath("/assignments/ingest-status");
+    revalidatePath("/dashboard");
+    revalidatePath("/leaderboard");
+
+    return {
+      ok: true,
+      data: {
+        assignmentsConsidered: sweep.assignmentsConsidered,
+        assignmentsIngested: sweep.assignmentsIngested,
+        assignmentsSkipped: sweep.assignmentsSkipped,
+        inserted: sweep.totalInserted,
+        updated: sweep.totalUpdated,
+        unchanged: sweep.totalUnchanged,
+        skippedRows: sweep.totalSkippedRows,
+        missedDeadlinePenalties,
+        durationMs: Date.now() - startedAt,
+        // An aborted assignment is the case the instructor actually needs to see:
+        // "0 submissions" and "the sheet is published as a web page" look identical
+        // from the grading queue, and only one of them is their problem to fix.
+        problems: sweep.reports
+          .filter((r) => r.aborted !== null)
+          .map((r) => ({
+            assignmentId: r.assignmentId,
+            title: r.assignmentTitle,
+            reason: r.aborted as string,
+            advice: r.abortDetail ?? ABORT_ADVICE[r.aborted!],
+          })),
       },
     };
   } catch (error) {

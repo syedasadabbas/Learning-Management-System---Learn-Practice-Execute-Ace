@@ -32,6 +32,7 @@
 
 import Link from "next/link";
 
+import { SyncSubmissionsButton } from "@/components/instructor";
 import { Badge, Card, EmptyState } from "@/components/ui";
 import { requireRole } from "@/lib/guard";
 import { getIngestStatus } from "@/lib/submissions/ingest-log";
@@ -55,13 +56,17 @@ export default async function IngestStatusPage() {
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="ingest-status-page">
-      <header>
-        <h1 className="text-2xl font-semibold">Submission ingest status</h1>
-        <p className="text-sm text-ink-muted">
-          The last time each assignment&apos;s response sheet was read, and what came of it.
-          Responses are swept hourly; an instructor can also trigger a run for one assignment
-          with <code>POST /api/assignments/&lt;id&gt;/ingest</code>.
-        </p>
+      <header className="flex flex-col gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Submission ingest status</h1>
+          <p className="text-sm text-ink-muted">
+            The last time each assignment&apos;s response sheet was read, and what came of it.
+            Responses are swept on a schedule; the button below runs the sweep for every
+            assignment now, and a single assignment can still be re-read with{" "}
+            <code>POST /api/assignments/&lt;id&gt;/ingest</code>.
+          </p>
+        </div>
+        <SyncSubmissionsButton label="Sync all response sheets now" />
       </header>
 
       {!status.available && (
