@@ -38,7 +38,7 @@ import { deadlineHasPassed, effectiveDueAt, normaliseGraceDays } from "./latenes
  * submission row.
  *
  * Idempotent: `persistPenaltyDecisions` skips a decision that is already open for
- * the student with the same type and description, so running this hourly does not
+ * the student with the same type and description, so re-running this does not
  * stack a new warning every hour.
  *
  * Returns the number of penalty rows actually written.

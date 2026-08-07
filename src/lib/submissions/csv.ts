@@ -439,7 +439,7 @@ export type ParseCsvResult = {
  *   Sheet with a header and no      NOT an abort. `rowsSeen: 0`, `rows: []`,
  *   data rows                       `aborted: null` — that is the correct steady
  *                                   state of a Form nobody has answered yet, and
- *                                   making it an abort would put the hourly cron
+ *                                   making it an abort would put the scheduled cron
  *                                   into permanent alarm over a healthy sheet.
  *   Sheet published as a web page   `aborted: "html_not_csv"` with the fix in the
  *                                   detail. See `looksLikeHtml`.

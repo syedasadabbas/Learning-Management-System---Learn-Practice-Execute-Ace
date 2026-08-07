@@ -3,7 +3,7 @@
 // Owner: submissions stream.
 // -----------------------------------------------------------------------------
 // The skip-reason union is deliberately a closed set of string literals rather
-// than free text. Ingestion runs unattended on a cron (hourly, see vercel.json),
+// than free text. Ingestion runs unattended on a cron (daily, see vercel.json),
 // so the only way anyone finds out a row was dropped is the per-run summary. A
 // closed set means the summary can be counted and compared between runs; free
 // text would make "3 rows skipped" unaggregatable.

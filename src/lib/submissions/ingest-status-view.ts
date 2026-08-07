@@ -104,15 +104,31 @@ export type VerdictInput = {
 };
 
 /**
+ * How often the sweep is actually scheduled, in milliseconds.
+ *
+ * READ THIS AGAINST vercel.json, which is the only authority: the cron entry for
+ * `/api/cron/ingest-submissions` is `0 0 * * *` — ONCE A DAY, not hourly. This
+ * file (and most of the comments in this directory) said hourly and sized the
+ * staleness window at three hours to match, which made every assignment on the
+ * operator surface turn amber three hours after midnight and stay amber for the
+ * remaining twenty-one. A page that is permanently warning is a page nobody
+ * reads, which is precisely the failure it was built to prevent.
+ *
+ * Declared as a constant so the threshold below cannot drift from it again.
+ */
+export const SWEEP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+/**
  * How old a successful last run may be before it is called stale.
  *
- * The sweep is hourly (vercel.json), so three hours means two scheduled runs did
- * not happen. Three rather than one because a single missed serverless invocation
- * is the platform's business and not the operator's, and raising an alarm on it
- * would train the operator to ignore this page — which is the failure mode the
- * page exists to fix.
+ * One full interval plus a two-hour grace. The grace absorbs the drift Vercel
+ * allows itself on a scheduled invocation without ringing an alarm; beyond it, a
+ * whole day's run did not happen, and at DAILY cadence a single missed run is
+ * worth saying out loud — the "one miss is the platform's business" tolerance
+ * that justified three hourly runs does not carry over to a schedule that only
+ * gets one chance a day.
  */
-export const STALE_AFTER_MS = 3 * 60 * 60 * 1000;
+export const STALE_AFTER_MS = SWEEP_INTERVAL_MS + 2 * 60 * 60 * 1000;
 
 /**
  * Order matters and is not arbitrary. "No sheet" outranks everything because no
@@ -152,8 +168,9 @@ export function verdictFor(row: VerdictInput, now: Date): Verdict {
       label: "stale",
       tone: "warning",
       why:
-        "The last run succeeded, but it was more than 3 hours ago and the sweep is " +
-        "scheduled hourly. At least two scheduled runs did not happen.",
+        "The last run succeeded, but it was more than 26 hours ago and the sweep is " +
+        "scheduled daily. A scheduled run did not happen — use the sync button to " +
+        "ingest now, and check the cron in vercel.json.",
     };
   }
   return {

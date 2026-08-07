@@ -772,3 +772,90 @@ test.describe("ingest status is visible to staff", () => {
     await expect(card).not.toHaveAttribute("data-verdict", "never run");
   });
 });
+
+// ---------------------------------------------------------------------------
+// The manual sync button
+// ---------------------------------------------------------------------------
+
+/**
+ * `SyncSubmissionsButton` -> `syncSubmissionsAction` -> `ingestAllAssignments` +
+ * `persistMissedDeadlinePenalties`, i.e. the cron sweep on demand under a staff
+ * session guard rather than CRON_SECRET.
+ *
+ * The assertions that matter are (a) it is staff-only, and (b) pressing it
+ * actually writes a run — a button that renders a toast without touching the
+ * database would pass a naive visibility check and be worse than no button,
+ * because it makes an empty queue look confirmed.
+ */
+test.describe("the manual submission sync button", () => {
+  test.describe.configure({ mode: "serial" });
+  // The sweep fetches one published CSV per assignment, each with a 15 000 ms
+  // transport timeout, and runs them sequentially on purpose (see the note in
+  // ingestAllAssignments about the 5-connection pool). The suite-wide 30 000 ms
+  // budget is a fair default for a page assertion and far too tight for this.
+  test.setTimeout(180_000);
+
+  test("a STUDENT never sees it — neither surface it lives on is reachable", async ({ page }) => {
+    await loginAs(page, "student");
+
+    await page.goto("/instructor/grading");
+    expect(page.url(), "a student must not land on the grading queue").not.toContain(
+      "/instructor/grading",
+    );
+    await expect(page.getByTestId("sync-submissions-button")).toHaveCount(0);
+
+    await page.goto("/assignments/ingest-status");
+    await expect(page.getByTestId("sync-submissions-button")).toHaveCount(0);
+  });
+
+  test("an instructor sees it on the grading queue and a press records a manual run", async ({
+    page,
+  }) => {
+    await loginAs(page, "instructor");
+    await page.goto("/instructor/grading");
+    await expectNoServerError(page);
+
+    const button = page.getByTestId("sync-submissions-button");
+    await expect(button).toBeVisible();
+
+    await button.click();
+
+    // The sweep fetches one CSV per assignment at up to 15 s each, so the result
+    // is given room rather than the default expect timeout.
+    // The Toast primitive renders role="status" for info/success and role="alert"
+    // for error, so it is matched by its testid rather than by role — a refusal is
+    // still a result this assertion must be able to see.
+    const result = page.getByTestId("sync-submissions").getByTestId("toast");
+    await expect(result).toBeVisible({ timeout: 90_000 });
+    // Whatever the sheets are configured as, the run must REPORT, not fail: the
+    // seeded no_csv_url state is a legitimate outcome, not an error.
+    await expect(result).toContainText(/assignment\(s\) checked|do not have access/);
+    await expectNoServerError(page);
+
+    // The write actually happened: the run is on the operator surface as "manual".
+    const status = await page.request.get("/api/assignments/ingest-status");
+    expect(status.status()).toBe(200);
+    const rows = (await status.json()).data.assignments as Array<{
+      lastRun: { triggeredBy: string } | null;
+    }>;
+    expect(
+      rows.some((r) => r.lastRun?.triggeredBy === "manual"),
+      "pressing the button must record a manual ingest run",
+    ).toBe(true);
+  });
+
+  test("an admin can press it on the ingest status page too", async ({ page }) => {
+    await loginAs(page, "admin");
+    await page.goto("/assignments/ingest-status");
+    await expectNoServerError(page);
+
+    const button = page.getByTestId("sync-submissions-button");
+    await expect(button).toBeVisible();
+    await button.click();
+
+    await expect(
+      page.getByTestId("sync-submissions").getByTestId("toast"),
+    ).toBeVisible({ timeout: 90_000 });
+    await expectNoServerError(page);
+  });
+});

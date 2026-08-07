@@ -26,7 +26,10 @@
 // the edge does not gate it and this handler is the ONLY thing standing in front
 // of the write path. That makes the guard below non-optional.
 //
-// vercel.json already schedules this hourly ("0 * * * *").
+// vercel.json schedules this DAILY ("0 0 * * *"). Instructors who cannot wait for
+// the next run press the button on /instructor/grading, which calls
+// `syncSubmissionsAction` — the same two domain calls under a staff session guard.
+// It deliberately does not reach this route: no browser may hold CRON_SECRET.
 //
 // TRANSPORT NOTE: Vercel Cron invokes a scheduled path with GET, while the frozen
 // route contract names this endpoint as POST. Both verbs are implemented and both

@@ -18,6 +18,9 @@ export type { PenaltyFormProps } from "./PenaltyForm";
 export { ExportButton } from "./ExportButton";
 export type { ExportButtonProps } from "./ExportButton";
 
+export { SyncSubmissionsButton } from "./SyncSubmissionsButton";
+export type { SyncSubmissionsButtonProps } from "./SyncSubmissionsButton";
+
 export {
   AnalyticsSummary,
   WeekAnalyticsTable,

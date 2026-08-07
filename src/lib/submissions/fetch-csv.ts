@@ -121,7 +121,7 @@ export async function fetchPublishedCsv(
       redirect: "follow",
       signal: AbortSignal.timeout(timeoutMs),
       headers: { accept: "text/csv,text/plain,*/*" },
-      // Never serve a cached body: the whole point of the hourly run is new rows.
+      // Never serve a cached body: the whole point of a scheduled run is new rows.
       cache: "no-store",
     });
 

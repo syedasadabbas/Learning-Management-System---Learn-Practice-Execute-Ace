@@ -13,7 +13,8 @@
 //
 // WHY THE TABLE EXISTS AT ALL
 //
-// Ingestion is unattended. It runs hourly from Vercel cron (vercel.json) and
+// Ingestion is unattended. It runs DAILY from Vercel cron (vercel.json, "0 0 * * *")
+// and
 // writes its outcome to `console.info`, which on a serverless deployment means a
 // log line nobody reads. Every failure mode the parser and the fetcher are careful
 // to report — a sheet published as HTML instead of CSV, a header row whose
@@ -27,7 +28,7 @@
 //
 // `assignment_id` is UNIQUE and each run UPSERTs over it, so this table holds "the
 // last ingest result per assignment" and nothing else. A history table would need
-// a retention rule, and an hourly cron across four assignments would write ~35 000
+// a retention rule, and a cron across four assignments would write, at hourly cadence, ~35 000
 // rows a year for a surface whose entire question is "did the most recent run
 // work?". The previous run is not diagnostically interesting once the current one
 // has the same answer; when it differs, the operator is looking at the surface
@@ -58,7 +59,7 @@ export const submissionIngestRuns = pgTable(
     /** When the run finished. Named `ran_at` rather than `created_at` because an UPSERT rewrites it. */
     ranAt: timestamp("ran_at", { withTimezone: true }).notNull().defaultNow(),
     /**
-     * "manual" (an instructor pressed re-ingest) or "cron" (the hourly sweep).
+     * "manual" (an instructor pressed the sync button) or "cron" (the daily sweep).
      * varchar, not a pgEnum: an enum here would be a migration in the shared
      * enum namespace for a diagnostic label, and an unrecognised value is
      * rendered verbatim rather than crashing the page.

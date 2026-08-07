@@ -10,7 +10,7 @@
 // configured, nothing has been ingested and empty is the correct first state.
 // =============================================================================
 
-import { GradeForm, QueueFilters, QueueTable } from "@/components/instructor";
+import { GradeForm, QueueFilters, QueueTable, SyncSubmissionsButton } from "@/components/instructor";
 import { requireRole } from "@/lib/guard";
 import {
   getGradingQueue,
@@ -50,12 +50,22 @@ export default async function GradingPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Grading queue</h1>
-        <p className="text-sm text-ink-muted">
-          {rows.length} submission{rows.length === 1 ? "" : "s"} in this view.
-          Ratings below 3 stars reduce the assignment score by 10 points per star.
-        </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Grading queue</h1>
+          <p className="text-sm text-ink-muted">
+            {rows.length} submission{rows.length === 1 ? "" : "s"} in this view.
+            Ratings below 3 stars reduce the assignment score by 10 points per star.
+          </p>
+        </div>
+        {/*
+          Form responses land here via a scheduled sweep of the published response
+          sheet, so a submission made minutes ago is not in the queue yet. The
+          button runs that sweep now and reports the result — including the case
+          where a sheet is misconfigured, which otherwise just looks like an empty
+          queue. Idempotent, so pressing it twice is harmless.
+        */}
+        <SyncSubmissionsButton />
       </header>
 
       <QueueFilters
