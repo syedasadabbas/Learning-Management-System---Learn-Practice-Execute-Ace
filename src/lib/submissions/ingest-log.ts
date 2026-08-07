@@ -7,10 +7,10 @@
 // Ingestion was already careful: `fetchPublishedCsv` names every transport
 // failure, `parseSubmissionCsv` names every unusable-sheet condition, and every
 // dropped row carries a closed-set `SkipReason` with a human-readable detail. All
-// of it went to `console.info` / `console.warn` and nowhere else. The hourly cron
+// of it went to `console.info` / `console.warn` and nowhere else. The scheduled cron
 // runs on Vercel, so "somewhere else" means a platform log an instructor has no
 // access to and an admin will not read. A sheet that was published as a web PAGE
-// instead of CSV would have reported itself perfectly, hourly, to nobody, while
+// instead of CSV would have reported itself perfectly, every run, to nobody, while
 // every student in the cohort appeared not to have submitted.
 //
 // So the report is written to the database and rendered at

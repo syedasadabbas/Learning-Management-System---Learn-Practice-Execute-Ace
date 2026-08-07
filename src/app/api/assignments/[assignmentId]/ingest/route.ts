@@ -61,7 +61,7 @@ export async function POST(
   // `aborted: "no_csv_url"` is the honest answer while the Google Sheet URLs are
   // still unset (see the TODO(decision) in scripts/seed.ts). Returning 500 for
   // the seeded state would make a correctly-behaving system look broken and
-  // would put the hourly cron into permanent alarm.
+  // would put the scheduled cron into permanent alarm.
   return apiOk({
     ...report,
     triggeredBy: { instructorId: gate.user.id, mode: "manual" as const },

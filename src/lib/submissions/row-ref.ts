@@ -3,7 +3,7 @@
 // Owner: submissions stream.
 // -----------------------------------------------------------------------------
 // `submissions_row_ref_idx` is a UNIQUE index on (assignment_id, sheet_row_ref)
-// in src/db/schema.ts. It is the only thing stopping the hourly cron from
+// in src/db/schema.ts. It is the only thing stopping the scheduled cron from
 // re-inserting every row of the sheet on every run, so the value we put in that
 // column has to be derived from something the sheet will still say tomorrow.
 //

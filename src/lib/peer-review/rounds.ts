@@ -249,7 +249,7 @@ export interface AllocationOutcome {
  * function and the reason `planAllocations` is a pure function of a seed.
  * =============================================================================
  *
- * Ingestion is hourly and unattended (vercel.json, `/api/cron/ingest-submissions`),
+ * Ingestion is daily and unattended (vercel.json, `/api/cron/ingest-submissions`),
  * so the submission pool GROWS after a round is opened: a student who hands in late
  * appears in `submissions` an hour later. An instructor will press "Allocate" again,
  * and the naive implementation — delete everything, re-plan, re-insert — would

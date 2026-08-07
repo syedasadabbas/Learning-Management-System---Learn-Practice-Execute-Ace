@@ -8,11 +8,14 @@
 // a parameter; the database read and the page that renders them are e2e's job.
 // =============================================================================
 
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
   MAX_STORED_SKIPPED_ROWS,
   STALE_AFTER_MS,
+  SWEEP_INTERVAL_MS,
   ageLabel,
   selectSkippedSample,
   summariseReport,
@@ -110,13 +113,48 @@ describe("verdictFor", () => {
   });
 
   it("treats exactly the threshold as still healthy", () => {
-    // Boundary pinned deliberately: `>` not `>=`, so a run at exactly 3 hours is
-    // not reported as a failure the instant the third hour ticks over.
+    // Boundary pinned deliberately: `>` not `>=`, so a run at exactly the
+    // threshold is not reported as a failure the instant it ticks over.
     const exactly = new Date(NOW.getTime() - STALE_AFTER_MS);
     expect(
       verdictFor({ sheetConfigured: true, lastRun: { ranAt: exactly, aborted: null, detail: null } }, NOW)
         .label,
     ).toBe("healthy");
+  });
+});
+
+describe("the staleness window against the real cron schedule", () => {
+  // THE REGRESSION THIS PINS. The window used to be three hours because every
+  // comment in this directory said the sweep was hourly, while vercel.json has
+  // scheduled it daily. Every assignment therefore turned amber three hours after
+  // midnight and stayed amber until the next run — a permanently warning page,
+  // which is the state that trains an operator to stop reading it.
+  it("is at least one full sweep interval, so a healthy daily run is not called stale", () => {
+    expect(STALE_AFTER_MS).toBeGreaterThan(SWEEP_INTERVAL_MS);
+  });
+
+  it("is less than two intervals, so a whole missed day is still reported", () => {
+    expect(STALE_AFTER_MS).toBeLessThan(2 * SWEEP_INTERVAL_MS);
+  });
+
+  it("matches the cron entry in vercel.json — the only authority on cadence", () => {
+    // Read, not restated: a test that hardcodes "daily" alongside the constant
+    // proves the two literals agree with each other and nothing about the deploy.
+    const config = JSON.parse(readFileSync("vercel.json", "utf8")) as {
+      crons: { path: string; schedule: string }[];
+    };
+    const entry = config.crons.find((c) => c.path === "/api/cron/ingest-submissions");
+    expect(entry, "the ingest sweep must still be scheduled").toBeDefined();
+
+    const [minute, hour, dom, month, dow] = entry!.schedule.split(" ");
+    // A daily schedule is a fixed minute at a fixed hour, every day.
+    const isDaily =
+      /^\d+$/.test(minute) && /^\d+$/.test(hour) && dom === "*" && month === "*" && dow === "*";
+    expect(
+      isDaily,
+      `schedule "${entry!.schedule}" is no longer daily — SWEEP_INTERVAL_MS must be updated to match`,
+    ).toBe(true);
+    expect(SWEEP_INTERVAL_MS).toBe(24 * 60 * 60 * 1000);
   });
 });
 

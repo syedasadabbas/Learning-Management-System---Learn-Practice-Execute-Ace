@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 // WHY THIS PAGE EXISTS
 //
-// Ingestion is unattended: hourly Vercel cron (vercel.json) into
+// Ingestion is unattended: daily Vercel cron (vercel.json) into
 // `ingestAllAssignments`. It was already careful about failure — every transport
 // problem, every unusable sheet and every dropped row is named with a closed-set
 // reason and a human-readable detail — and it reported all of it to

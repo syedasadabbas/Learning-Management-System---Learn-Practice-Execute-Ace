@@ -16,7 +16,7 @@
 // the batch would appear not to have submitted. Per-row statements mean a bad row
 // costs exactly that row, which is the stated requirement. Ingestion is
 // idempotent, so a partially completed run is repaired by running it again —
-// which the hourly cron does anyway.
+// which the daily cron does anyway.
 //
 // IDEMPOTENCY rests on `submissions_row_ref_idx`, the unique index on
 // (assignment_id, sheet_row_ref). Note the Postgres subtlety that makes the
@@ -63,7 +63,7 @@ export type IngestOptions = {
   /**
    * Who asked for this run. Recorded on the operator surface so that "ran two
    * minutes ago" can be told apart from "an instructor pressed the button two
-   * minutes ago"; the hourly cron running is evidence the scheduler is alive,
+   * minutes ago"; the scheduled cron running is evidence the scheduler is alive,
    * a manual run is not.
    *
    * Defaults to "manual": a caller that did not say is not the scheduler.
@@ -298,8 +298,8 @@ type PersistOutcome =
  * The four cases, and why each behaves as it does:
  *
  *  1. No submission yet -> INSERT with `onConflictDoNothing` on the row-ref
- *     index. The conflict target matters: two overlapping runs (the hourly cron
- *     and an instructor pressing re-ingest) can reach this line at the same
+ *     index. The conflict target matters: two overlapping runs (the scheduled cron
+ *     and an instructor pressing the sync button) can reach this line at the same
  *     moment, and losing that race must be a no-op, not a 500.
  *
  *  2. Same row ref -> the idempotent path. Captured fields are refreshed if the

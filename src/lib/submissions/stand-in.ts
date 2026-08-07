@@ -249,7 +249,7 @@ export type StandInRespondent = {
  * One respondent also bounds the blast radius. This repository is built by
  * several streams against ONE shared seeded database, and ingestion is a WRITE:
  * every row here becomes a real `submissions` row the moment anyone triggers the
- * hourly sweep. Four rows for one known demo account is a change other streams
+ * scheduled sweep. Four rows for one known demo account is a change other streams
  * can reason about; a manufactured cohort would not be.
  */
 export const STAND_IN_STUDENT_EMAIL = "student@codequeenshub.test";
